@@ -1,0 +1,44 @@
+version: "3.7"
+
+volumes:
+  linea-goerli:
+    name: "linea-goerli"
+
+services:
+  init:
+    image: ethereum/client-go:v1.11.6
+    command:
+    - init
+    - /genesis.json
+    volumes:
+      - ./genesis.json:/genesis.json:ro
+      - linea-goerli:/root/.ethereum
+
+  node:
+    image: ethereum/client-go:v1.11.6
+    pull_policy: always
+    restart: unless-stopped
+    stop_grace_period: 30s
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    command:
+      --networkid=59140
+      --syncmode=snap
+      --http
+      --http.addr='0.0.0.0'
+      --http.port=8545
+      --http.corsdomain='*'
+      --http.api='admin,web3,eth,txpool,net'
+      --http.vhosts='*'
+      --bootnodes "enode://c7d29d1bbb768e73c6bd320608276dc2341670822ed1292456a7b8375de35b5348e3b6bac63783a53d697378b25c5658681683f7621e31b37c605993c5ee13bd@18.189.141.200:30303,enode://14ba040dd8c5b1ea607fabf98c3c7c398658f897c502d0ca5202dce8907e83be953995ce5c3f72def2af710c072fe38de4e9347a299370fc82d6d17819967c93@3.144.118.88:30303"
+      --verbosity=3
+    ports:
+      - 30303:30303
+      - 30303:30303/udp
+      - 8545:8545
+      - 8546:8546
+    volumes:
+      - ./genesis.json:/genesis.json:ro
+      - linea-goerli:/root/.ethereum
+
